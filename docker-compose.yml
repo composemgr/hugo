@@ -1,0 +1,21 @@
+name: hugo
+services:
+    server:
+        image: 'backplane/hugo:latest'
+        restart: always 
+        pull_policy: always
+        command: 'hugo server --bind 0.0.0.0 --port 80'
+        ports:
+            - '172.17.0.1:60190:80'
+        volumes:
+            - '$(pwd):/work'
+        tty: true
+        stdin_open: true
+        networks:
+          - hugo
+
+networks:
+  hugo:
+    name: hugo
+    external: false
+    
