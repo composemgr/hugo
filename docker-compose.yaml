@@ -21,7 +21,7 @@ services:
     ports:
       - '172.17.0.1:60190:80'
     volumes:
-      - '$(pwd):/site'
+      - './:/site'
     networks:
       - hugo
 
