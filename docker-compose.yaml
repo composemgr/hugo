@@ -1,0 +1,32 @@
+# nginx proxy address - http://172.17.0.1:60190
+
+name: hugo
+x-logging: &default-logging
+  options:
+    max-size: '5m'
+    max-file: '1'
+  driver: json-file
+
+services:
+  app:
+    image: peaceiris/hugo:latest
+    container_name: hugo-app
+    restart: always
+    pull_policy: always
+    command: 'hugo server --bind 0.0.0.0 --port 80 -s /site'
+    tty: true
+    stdin_open: true
+    logging: *default-logging
+    environment:
+      TZ: ${TZ:-America/New_York}
+    ports:
+      - '172.17.0.1:60190:80'
+    volumes:
+      - './rootfs/data/hugo:/site'
+    networks:
+      - hugo
+
+networks:
+  hugo:
+    name: hugo
+    external: false
