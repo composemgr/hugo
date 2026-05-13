@@ -9,11 +9,11 @@ x-logging: &default-logging
 
 services:
   app:
-    image: peaceiris/hugo:latest
+    image: hugomods/hugo:latest
     container_name: hugo-app
     restart: always
     pull_policy: always
-    command: 'hugo server --bind 0.0.0.0 --port 80 -s /site'
+    command: 'hugo server --bind 0.0.0.0 --port 1313 -s /site'
     tty: true
     stdin_open: true
     logging: *default-logging
@@ -22,7 +22,7 @@ services:
       CONTAINER_NAME: hugo-app
       HOSTNAME: ${BASE_HOST_NAME:-$HOSTNAME}
     ports:
-      - '172.17.0.1:60190:80'
+      - '172.17.0.1:60190:1313'
     volumes:
       - './volumes/data/hugo:/site'
     networks:
@@ -33,7 +33,7 @@ services:
       - 'traefik.enable=true'
       - 'cloudflare.enable=true'
       - 'traefik.docker.network=proxy'
-      - 'cloudflare.service=http://hugo-app:80'
+      - 'cloudflare.service=http://hugo-app:1313'
       - 'cloudflare.hostname=hugo.${CLOUDFLARE_ZONE_NAME:-}'
       - 'traefik.http.routers.hugo-app.entrypoints=http'
       - 'traefik.http.routers.hugo-app-secure.tls=true'
@@ -44,7 +44,7 @@ services:
       - 'traefik.http.routers.hugo-app-secure.rule=Host($(${BASE_HOST_NAME:-$HOSTNAME}))'
       - 'traefik.http.routers.hugo-app-secure.tls.certresolver=cloudflare'
       - 'traefik.http.routers.hugo-app-secure.service=hugo-app'
-      - 'traefik.http.services.hugo-app.loadbalancer.server.port=80'
+      - 'traefik.http.services.hugo-app.loadbalancer.server.port=1313'
 
 networks:
   hugo:
