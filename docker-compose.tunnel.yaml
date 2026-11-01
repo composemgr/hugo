@@ -1,0 +1,46 @@
+name: hugo
+x-logging: &default-logging
+  options:
+    max-size: '5m'
+    max-file: '1'
+  driver: json-file
+
+services:
+  app:
+    image: hugomods/hugo:latest
+    container_name: hugo-app
+    domainname: ${BASE_DOMAIN_NAME:-example.com}
+    hostname: ${BASE_HOST_NAME:-$HOSTNAME}
+    restart: always
+    pull_policy: always
+    logging: *default-logging
+    environment:
+      TZ: ${TZ:-America/New_York}
+      CONTAINER_NAME: hugo-app
+      HOSTNAME: ${BASE_HOST_NAME:-$HOSTNAME}
+      HUGO_ENV: production
+    command:
+      - server
+      - --bind=0.0.0.0
+      - --baseURL=https://${BASE_HOST_NAME:-$HOSTNAME}/
+      - --appendPort=false
+      - --buildDrafts=false
+      - --buildFuture=false
+      - --disableFastRender=true
+      - --enableGitInfo=false
+    volumes:
+      - './volumes/config/hugo:/src:z'
+    labels:
+      - 'cloudflare.enable=true'
+      - 'cloudflare.service=http://hugo-app:1313'
+      - 'cloudflare.hostname=${BASE_HOST_NAME:-$HOSTNAME}'
+    networks:
+      - hugo
+      - cloudflare
+
+networks:
+  hugo:
+    name: hugo
+    external: false
+  cloudflare:
+    external: true

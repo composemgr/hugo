@@ -1,0 +1,54 @@
+name: hugo
+x-logging: &default-logging
+  options:
+    max-size: '5m'
+    max-file: '1'
+  driver: json-file
+
+services:
+  app:
+    image: hugomods/hugo:latest
+    container_name: hugo-app
+    domainname: ${BASE_DOMAIN_NAME:-example.com}
+    hostname: ${BASE_HOST_NAME:-$HOSTNAME}
+    restart: always
+    pull_policy: always
+    logging: *default-logging
+    environment:
+      TZ: ${TZ:-America/New_York}
+      CONTAINER_NAME: hugo-app
+      HOSTNAME: ${BASE_HOST_NAME:-$HOSTNAME}
+      HUGO_ENV: production
+    command:
+      - server
+      - --bind=0.0.0.0
+      - --baseURL=https://${BASE_HOST_NAME:-$HOSTNAME}/
+      - --appendPort=false
+      - --buildDrafts=false
+      - --buildFuture=false
+      - --disableFastRender=true
+      - --enableGitInfo=false
+    volumes:
+      - './volumes/config/hugo:/src:z'
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.docker.network=traefik'
+      - 'traefik.http.routers.hugo-app.entrypoints=http'
+      - 'traefik.http.routers.hugo-app.rule=Host(`${BASE_HOST_NAME:-$HOSTNAME}`)'
+      - 'traefik.http.middlewares.hugo-app-https-redirect.redirectscheme.scheme=https'
+      - 'traefik.http.routers.hugo-app.middlewares=hugo-app-https-redirect'
+      - 'traefik.http.routers.hugo-app-secure.entrypoints=https'
+      - 'traefik.http.routers.hugo-app-secure.rule=Host(`${BASE_HOST_NAME:-$HOSTNAME}`)'
+      - 'traefik.http.routers.hugo-app-secure.tls.certresolver=cloudflare'
+      - 'traefik.http.routers.hugo-app-secure.service=hugo-app'
+      - 'traefik.http.services.hugo-app.loadbalancer.server.port=1313'
+    networks:
+      - hugo
+      - traefik
+
+networks:
+  hugo:
+    name: hugo
+    external: false
+  traefik:
+    external: true
